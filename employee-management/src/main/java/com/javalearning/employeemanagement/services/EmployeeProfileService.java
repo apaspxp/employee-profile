@@ -2,8 +2,12 @@ package com.javalearning.employeemanagement.services;
 
 
 import java.io.IOException;
+import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.Period;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +31,15 @@ public class EmployeeProfileService {
 	@Transactional(rollbackFor = Exception.class)
 	public String persistEmployeeProfile(EmployeeProfile employeeProfile) {
 		
-//		if (!employeeProfileRepository.existsById(employeeProfile.getEmployeeNumber())) {
+//		LocalDate today = LocalDate.now();
+//		LocalDate birthday = LocalDate.of(Integer.parseInt(employeeProfile.getDateOfBirth().substring(6, 10)),
+//				Month.of(Integer.parseInt(employeeProfile.getDateOfBirth().substring(4, 5))),
+//				Integer.parseInt(employeeProfile.getDateOfBirth().substring(1, 2)));
+//		Period period = Period.between(birthday, today);
+//		if (period.getYears() < 18) {
+//			return "Age is less than 18";
+//		}
+		
 		if (!employeeProfileRepository.existsByFirstNameIgnoreCaseContainingAndMiddleNameIgnoreCaseContainingAndLastNameIgnoreCaseContainingAndEmail(employeeProfile.getFirstName(), employeeProfile.getMiddleName(), employeeProfile.getLastName(), employeeProfile.getEmail())) {
 			EmployeeProfile employeeProfileObj = new EmployeeProfile();
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.UK);
@@ -40,7 +52,6 @@ public class EmployeeProfileService {
 			employeeProfileObj.setAadhaar(employeeProfile.getAadhaar());
 			employeeProfileObj.setVoterId(employeeProfile.getVoterId());
 			try {
-				System.out.println("Within service method date of birth: "+employeeProfile.getDateOfBirth());
 				employeeProfileObj.setDateOfBirth(sdf.parse(employeeProfile.getDateOfBirth()).toString());
 				employeeProfileObj.setDateOfJoining(sdf.parse(employeeProfile.getDateOfJoining()).toString());
 				employeeProfileObj.setLastWorkingDate(sdf.parse(employeeProfile.getLastWorkingDate()).toString());
