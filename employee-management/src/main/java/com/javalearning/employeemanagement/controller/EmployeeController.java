@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.javalearning.employeemanagement.entity.EmployeeProfile;
+import com.javalearning.employeemanagement.model.EmployeeAddressModel;
+import com.javalearning.employeemanagement.model.EmployeePhoneNumberModel;
+import com.javalearning.employeemanagement.model.EmployeeProfileModel;
 import com.javalearning.employeemanagement.model.ImageResponse;
 import com.javalearning.employeemanagement.model.ResponseMessage;
 import com.javalearning.employeemanagement.services.EmployeeProfileService;
@@ -48,6 +51,13 @@ public class EmployeeController {
 		return new ResponseEntity<ResponseMessage>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/updateemployeeprofile", method =RequestMethod.PUT)
+	public ResponseEntity<ResponseMessage> updateEmployeeProfile(@RequestBody EmployeeProfile employeeProfile) {
+		ResponseMessage response = new ResponseMessage();
+		response.message = employeeProfileService.updateEmployeeProfile(employeeProfile);
+		return new ResponseEntity<ResponseMessage>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/uploadimage", method =RequestMethod.POST)
 	public ResponseEntity<ResponseMessage> uploadProfileImage(@RequestParam("picture") MultipartFile picture, @RequestParam("employeeNumber") String employeeNumber) {
 		System.out.println("Employee Number: " + employeeNumber);
@@ -58,13 +68,64 @@ public class EmployeeController {
 		return new ResponseEntity<ResponseMessage>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/getemployee/{employeeNumber}",method = RequestMethod.GET)
-	public ImageResponse getEmployeeProfile(@PathVariable String employeeNumber) {
+	@RequestMapping(value = "/getemployeeimage/{employeeNumber}",method = RequestMethod.GET)
+	public ImageResponse getEmployeeProfileImage(@PathVariable String employeeNumber) {
 		EmployeeProfile employeeProfile = employeeProfileService.getEmployeeProfile(employeeNumber);
 		ImageResponse response = new ImageResponse();
 		response.setEmployeeNumber(employeeNumber);
 		response.setPicture(employeeProfile.getPicture());
 		return response;
+	}
+	
+	@RequestMapping(value = "/getemployee/{employeeNumber}",method = RequestMethod.GET)
+	public EmployeeProfileModel getEmployeeProfile(@PathVariable String employeeNumber) {
+		EmployeeProfile employeeProfile = employeeProfileService.getEmployeeProfile(employeeNumber);
+		if (employeeProfile != null) {
+			List<EmployeeAddressModel> addressModels = new ArrayList<>();
+			
+			List<EmployeePhoneNumberModel> phoneNumbers = new ArrayList<>();
+			employeeProfile.getAddresses().stream().forEach(a -> {
+				EmployeeAddressModel addressModel = new EmployeeAddressModel(a.getId(), a.getAddressLine(), a.getStreet(), a.getCity(), a.getState(), a.getPinCode(), a.getCountry());
+				addressModels.add(addressModel);
+			});
+			employeeProfile.getPhoneNumbers().stream().forEach(p -> {
+				EmployeePhoneNumberModel phone = new EmployeePhoneNumberModel(p.getId(), p.getPhoneNumber());
+				phoneNumbers.add(phone);
+			});
+			
+			EmployeeProfileModel employee = new EmployeeProfileModel(employeeProfile.getEmployeeNumber(), employeeProfile.getFirstName(), employeeProfile.getMiddleName(), employeeProfile.getLastName(), employeeProfile.getEmail(), employeeProfile.getPan(), employeeProfile.getAadhaar(), employeeProfile.getAadhaar(), employeeProfile.getDateOfBirth(), employeeProfile.getDateOfJoining(), employeeProfile.getLastWorkingDate(), employeeProfile.getPicture(), addressModels, phoneNumbers);
+			return employee;
+		}else {
+			EmployeeProfileModel emptyEmployee = new EmployeeProfileModel(0, "", "", "", "", "", "", "", "", "", "", null, null, null);
+			return emptyEmployee;
+		}
+	}
+	
+	@RequestMapping(value = "/getallemployees",method = RequestMethod.GET)
+	public List<EmployeeProfileModel> getAllEmployees(){
+		List<EmployeeProfile> employees = employeeProfileService.getAllEmployees();
+		List<EmployeeProfileModel> employeesModel = new ArrayList<>();
+		
+		if (employees.size() > 0) {
+			employees.stream().forEach(e -> {
+				List<EmployeeAddressModel> addressModels = new ArrayList<>();
+				List<EmployeePhoneNumberModel> phoneNumbers = new ArrayList<>();
+				
+				e.getAddresses().stream().forEach(a -> {
+					EmployeeAddressModel addressModel = new EmployeeAddressModel(a.getId(), a.getAddressLine(), a.getStreet(), a.getCity(), a.getState(), a.getPinCode(), a.getCountry());
+					addressModels.add(addressModel);
+				});
+				e.getPhoneNumbers().stream().forEach(p -> {
+					EmployeePhoneNumberModel phone = new EmployeePhoneNumberModel(p.getId(), p.getPhoneNumber());
+					phoneNumbers.add(phone);
+				});
+				EmployeeProfileModel employeeProfileModel = new EmployeeProfileModel(e.getEmployeeNumber(), e.getFirstName(), e.getMiddleName(), e.getLastName(), e.getEmail(), e.getPan(), e.getAadhaar(), e.getAadhaar(), e.getDateOfBirth(), e.getDateOfJoining(), e.getLastWorkingDate(), e.getPicture(), addressModels, phoneNumbers);
+				employeesModel.add(employeeProfileModel);
+			});
+			return employeesModel;
+		}else {
+			return Arrays.asList(new EmployeeProfileModel(0, "", "", "", "", "", "", "", "", "", "", null, null, null));
+		}
 	}
 }
 
