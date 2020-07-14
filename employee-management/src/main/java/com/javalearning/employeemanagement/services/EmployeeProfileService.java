@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,10 @@ public class EmployeeProfileService {
 			try {
 				employeeProfileObj.setDateOfBirth(sdf.parse(employeeProfile.getDateOfBirth()).toString());
 				employeeProfileObj.setDateOfJoining(sdf.parse(employeeProfile.getDateOfJoining()).toString());
-				employeeProfileObj.setLastWorkingDate(sdf.parse(employeeProfile.getLastWorkingDate()).toString());
+				if (!"".equals(employeeProfile.getLastWorkingDate())) 
+					employeeProfileObj.setLastWorkingDate(sdf.parse(employeeProfile.getLastWorkingDate()).toString());
+				else
+					employeeProfileObj.setLastWorkingDate("");
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
@@ -65,6 +69,7 @@ public class EmployeeProfileService {
 			});
 			employeeProfile.getAddresses().stream().forEach(a -> {
 				employeeProfileObj.getAddresses().add(a);
+				
 				a.setEmployeeProfile(employeeProfileObj);
 			});
 			try {
@@ -101,5 +106,19 @@ public class EmployeeProfileService {
 			return employeeProfileObj;
 		}
 		return null;
+	}
+	
+	public String updateEmployeeProfile(EmployeeProfile employeeProfile) {
+		List<EmployeeProfile> employeeToBeUpdated = employeeProfileRepository.findByFirstNameIgnoreCaseContainingAndMiddleNameIgnoreCaseContainingAndLastNameIgnoreCaseContainingAndEmail(employeeProfile.getFirstName(), employeeProfile.getMiddleName(), employeeProfile.getLastName(), employeeProfile.getEmail());
+		if (employeeToBeUpdated.size() > 0) {
+			employeeToBeUpdated.stream().forEach(e -> {
+				System.out.println("Employee Number: "+e.getEmployeeNumber());
+				System.out.println("Employee Name: "+e.getFirstName()+" "+e.getMiddleName()+" "+e.getLastName());
+			});
+		}
+		return "Fetched";
+	}
+	public List<EmployeeProfile> getAllEmployees(){
+		return employeeProfileRepository.findAll();
 	}
 }

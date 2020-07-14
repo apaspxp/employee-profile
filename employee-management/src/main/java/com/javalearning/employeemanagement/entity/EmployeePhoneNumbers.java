@@ -29,6 +29,14 @@ public class EmployeePhoneNumbers {
 	public EmployeePhoneNumbers() {
 	}
 
+	public int getId() {
+		return Id;
+	}
+
+	public void setId(int id) {
+		Id = id;
+	}
+
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
